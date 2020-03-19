@@ -2,7 +2,7 @@
 // @name         HTML5 on CCTV
 // @namespace    https://github.com/sarshazzar
 // @version      0.1
-// @description  Replace Flash Player with HTML5 Player on tv.cctv.com
+// @description  Replace Flash Player with HTML5 Player on cctv.com
 // @author       sarshazzar
 // @include      *://*.cctv.com/*
 // @require      https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js
@@ -11,7 +11,7 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @grant        unsafeWindow
-// @updateURL    https://github.com/sarshazzar/commonScripts/raw/master/h5Player/CCTV.user.js
+// @updateURL    https://github.com/sarshazzar/commonScripts/raw/master/h5Player/CCTV.js
 // ==/commonScripts==
 
 (function() {
