@@ -1,4 +1,4 @@
-// ==commonScripts==
+// ==UserScript==
 // @name         HTML5 on CCTV
 // @namespace    https://github.com/sarshazzar
 // @version      0.1
@@ -12,7 +12,7 @@
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @updateURL    https://github.com/sarshazzar/commonScripts/raw/master/h5Player/CCTV.js
-// ==/commonScripts==
+// ==/UserScript==
 
 (function() {
     var util = (function () {
