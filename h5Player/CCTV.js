@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HTML5 on CCTV
 // @namespace    https://github.com/sarshazzar
-// @version      0.2
+// @version      0.1
 // @description  Replace Flash Player with HTML5 Player on cctv.com
 // @author       sarshazzar
 // @include      *://*.cctv.com/*
@@ -114,11 +114,11 @@
                     var vlist = res.body.split('\n');
                     var m3u8 = [];
                     vlist.forEach(function (v) {
-                        if (v.indexOf('/200.m3u8')>-1) {m3u8.push({name: '流畅', url: 'https://hls.cntv.myalicdn.com'+v, type: 'hls'});}
-                        else if (v.indexOf('/450.m3u8')>-1) {m3u8.push({name: '低清', url: 'https://hls.cntv.myalicdn.com'+v, type: 'hls'});}
-                        else if (v.indexOf('/850.m3u8')>-1) {m3u8.push({name: '标清', url: 'https://hls.cntv.myalicdn.com'+v, type: 'hls'});}
-                        else if (v.indexOf('/1200.m3u8')>-1) {m3u8.push({name: '高清', url: 'https://hls.cntv.myalicdn.com'+v, type: 'hls'});}
-                        else if (v.indexOf('/2000.m3u8')>-1) {m3u8.push({name: '超清', url: 'https://hls.cntv.myalicdn.com'+v, type: 'hls'});}
+                        if (v.indexOf('/200.m3u8')>-1) {m3u8.push({name: '流畅', url: 'https://hls2.cntv.myalicdn.com'+v, type: 'hls'});}
+                        else if (v.indexOf('/450.m3u8')>-1) {m3u8.push({name: '低清', url: 'https://hls2.cntv.myalicdn.com'+v, type: 'hls'});}
+                        else if (v.indexOf('/850.m3u8')>-1) {m3u8.push({name: '标清', url: 'https://hls2.cntv.myalicdn.com'+v, type: 'hls'});}
+                        else if (v.indexOf('/1200.m3u8')>-1) {m3u8.push({name: '高清', url: 'https://hls2.cntv.myalicdn.com'+v, type: 'hls'});}
+                        else if (v.indexOf('/2000.m3u8')>-1) {m3u8.push({name: '超清', url: 'https://hls2.cntv.myalicdn.com'+v, type: 'hls'});}
                     });
                     _this.addPlayer(m3u8);
                 });
