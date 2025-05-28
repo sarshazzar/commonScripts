@@ -10,7 +10,7 @@ ipv6="true"
 username="$1"
 password="$2"
 hostname="$3"
-ipAddr="$4"
+ipAddr=$(ip addr show dev eth0 | grep -oE '[0-f]{0,4}\:[0-f]{0,4}\:[0-f]{0,4}\:[0-f]{0,4}\:[0-f]{0,4}\:[0-f]{0,4}\:[0-f]{0,4}\:[0-f]{0,4}')
 recType6="AAAA"
 
 #Fetch and filter IPv6, if Synology won't provide it
