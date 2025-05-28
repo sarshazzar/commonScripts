@@ -1,67 +1,78 @@
 #!/bin/bash
+# copyright:https://raw.githubusercontent.com/joshuaavalon/SynologyCloudflareDDNS/master/cloudflareddns.sh
 set -e;
-
-ipv4Regex="((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])"
-
-proxy="true"
+ipv6Regex="(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))"
+ipv6="true"
+# proxy="true" 
+# ask for existing proxy, don't override it <.<
 
 # DSM Config
 username="$1"
 password="$2"
 hostname="$3"
 ipAddr="$4"
-ip6fetch=$(ip -6 addr show eth0 | grep -oP '(?<=inet6\s)[\da-f:]+')
-ip6Addr=${ip6fetch:0:$((${#ip6fetch})) - 25}
-rec6type="AAAA"
+recType6="AAAA"
 
-if [[ $ipAddr =~ $ipv4Regex ]]; then
-    recordType="A";
+#Fetch and filter IPv6, if Synology won't provide it
+if [[ $ipv6 = "true" ]]; then
+    # ip6fetch=$(ip -6 addr show eth0 | grep -oP "$ipv6Regex" || true)
+    # Look out: `ip -6 addr show {your ipv6 network card} [filter your one ipv6 addr] `
+    ip6fetch=$(ip -6 addr show ovs_eth0 | grep -oE "$ipv6Regex" | head -n 1 || true)
+    # ip6Addr=$(if [ -z "$ip6fetch" ]; then echo ""; else echo "${ip6fetch:0:$((${#ip6fetch})) - 7}"; fi) # in case of NULL, echo NULL
+    # Look out: ip6Addr final output your public ipv6 addr
+    ip6Addr=$(if [ -z "$ip6fetch" ]; then echo ""; else echo "${ip6fetch}"; fi) # in case of NULL, echo NULL
+    if [[ -z "$ip6Addr" ]]; then
+        ipv6="false";     # if only ipv4 is available
+        echo "not obtain ipv6 addr";
+        exit 1;
+    fi
 else
-    recordType="AAAA";
+    echo "not obtain ipv6 addr";
+    exit 1;
 fi
 
-listDnsApi="https://api.cloudflare.com/client/v4/zones/${username}/dns_records?type=${recordType}&name=${hostname}"
-list6DnsApi="https://api.cloudflare.com/client/v4/zones/${username}/dns_records?type=${rec6type}&name=${hostname}"
-createDnsApi="https://api.cloudflare.com/client/v4/zones/${username}/dns_records"
+# above only, if IPv4 and/or IPv6 is provided
+listDnsv6Api="https://api.cloudflare.com/client/v4/zones/${username}/dns_records?type=${recType6}&name=${hostname}" # if only IPv4 is provided
 
-res6=$(curl -s -X GET "$list6DnsApi" -H "Authorization: Bearer $password" -H "Content-Type:application/json")
-res=$(curl -s -X GET "$listDnsApi" -H "Authorization: Bearer $password" -H "Content-Type:application/json")
+resv6=$(curl -s -X GET "$listDnsv6Api" -H "Authorization: Bearer $password" -H "Content-Type:application/json");
+resSuccess=$(echo "$resv6" | jq -r ".success")
 
-resSuccess=$(echo "$res" | jq -r ".success")
-res6Success=$(echo "$res" | jq -r ".success")
-
-if [ $resSuccess != "true" ] || [ $res6Success != "true" ]; then
+if [[ $resSuccess != "true" ]]; then
     echo "badauth";
     exit 1;
 fi
 
-recordId=$(echo "$res" | jq -r ".result[0].id")
-recordIp=$(echo "$res" | jq -r ".result[0].content")
-recordId6=$(echo "$res6" | jq -r ".result[0].id")
-recordIp6=$(echo "$res6" | jq -r ".result[0].content")
+recordIdv6=$(echo "$resv6" | jq -r ".result[0].id");
+recordIpv6=$(echo "$resv6" | jq -r ".result[0].content");
+recordProxv6=$(echo "$resv6" | jq -r ".result[0].proxied");
 
-if [ $recordIp = "$ipAddr" ] && [ $recordIp6 = "$ip6Addr" ]; then
+
+# API-Calls for creating DNS-Entries
+createDnsApi="https://api.cloudflare.com/client/v4/zones/${username}/dns_records" # does also work for IPv6
+
+
+# API-Calls for update DNS-Entries
+updateDnsApi="https://api.cloudflare.com/client/v4/zones/${username}/dns_records/${recordId}" # for IPv4 or if provided IPv6
+update6DnsApi="https://api.cloudflare.com/client/v4/zones/${username}/dns_records/${recordIdv6}" # if only IPv4 is provided
+
+if [[ $recordIpv6 = "$ip6Addr" ]]; then
     echo "nochg";
     exit 0;
 fi
 
-if [ $recordId = "null" ]; then
-    # Record not exists
-        res=$(curl -s -X POST "$createDnsApi" -H "Authorization: Bearer $password" -H "Content-Type:application/json" --data "{\"type\":\"$recordType\",\"name\":\"$hostname\",\"content\":\"$ipAddr\",\"proxied\":$proxy}");
-elif [ $recordId6 = "null" ]; then
-        res6=$(curl -s -X POST "$createDnsApi" -H "Authorization: Bearer $password" -H "Content-Type:application/json" --data "{\"type\":\"$rec6type\",\"name\":\"$hostname\",\"content\":\"$ip6Addr\",\"proxied\":$proxy}");
-elif [ $recordIp != "$ipAddr" ]; then
-    updateDnsApi="https://api.cloudflare.com/client/v4/zones/${username}/dns_records/${recordId}";
-    res=$(curl -s -X PUT "$updateDnsApi" -H "Authorization: Bearer $password" -H "Content-Type:application/json" --data "{\"type\":\"$recordType\",\"name\":\"$hostname\",\"content\":\"$ipAddr\",\"proxied\":$proxy}");
-elif [ $recordIp6 != "$ip6Addr" ]; then
-        update6DnsApi="https://api.cloudflare.com/client/v4/zones/${username}/dns_records/${recordId6}";
-        res6=$(curl -s -X PUT "$update6DnsApi" -H "Authorization: Bearer $password" -H "Content-Type:application/json" --data "{\"type\":\"$rec6type\",\"name\":\"$hostname\",\"content\":\"$ip6Addr\",\"proxied\":$proxy}");
-fi
 
-resSuccess=$(echo "$res" | jq -r ".success")
-res6Success=$(echo "$res6" | jq -r ".success")
+if [[ $recordIdv6 = "null" ]]; then
+    # IPv6 Record not exists
+    proxy="false"; # new entry, enable proxy by default
+    res6=$(curl -s -X POST "$createDnsApi" -H "Authorization: Bearer $password" -H "Content-Type:application/json" --data "{\"type\":\"$recType6\",\"name\":\"$hostname\",\"content\":\"$ip6Addr\",\"proxied\":$proxy}");
+else
+    # IPv6 Record exists
+    res6=$(curl -s -X PUT "$update6DnsApi" -H "Authorization: Bearer $password" -H "Content-Type:application/json" --data "{\"type\":\"$recType6\",\"name\":\"$hostname\",\"content\":\"$ip6Addr\",\"proxied\":$recordProxv6}");
+fi;
+res6Success=$(echo "$res6" | jq -r ".success");
 
-if [ $resSuccess = "true" ] || [ $res6Success = "true" ]; then
+
+if [[ $res6Success = "true" ]]; then
     echo "good";
 else
     echo "badauth";
