@@ -1,11 +1,3 @@
-
-M3U ⇄ TXT 转换工具
-
-※m3u转txt txt转m3u m3u转换 m3u格式 txt格式 直播源格式转换
-
-image
-转换结果：
-
 #EXTM3U
 #EXTINF:-1 group-title="",CCTV1
 http://120.202.73.48:8888/tsfile/live/0001_1.m3u8?key=txiptv&playlive=0&authid=0
