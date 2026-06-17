@@ -154,6 +154,16 @@ http://218.104.239.114:9901/tsfile/live/0004_1.m3u8?key=txiptv&playlive=1&authid
 #EXTINF:-1 ,CCTV4
 http://120.198.95.220:9901/tsfile/live/1018_1.m3u8?key=txiptv&playlive=1&down=1
 #EXTINF:-1 ,CCTV5
+http://192.168.5.45:38766/cctv5.m3u8
+#EXTINF:-1 ,CCTV5
+http://192.168.5.45:38766/cctv16.m3u8
+#EXTINF:-1 ,CCTV5
+http://192.168.5.45:38766/cctv164k.m3u8
+#EXTINF:-1 ,CCTV5
+http://192.168.5.45:38766/cctv4k.m3u8
+#EXTINF:-1 ,CCTV5
+http://192.168.5.45:38766/cctv8k.m3u8
+#EXTINF:-1 ,CCTV5
 http://77.90.60.172:55555/8
 #EXTINF:-1 ,CCTV5
 http://77.90.60.172:55555/2
